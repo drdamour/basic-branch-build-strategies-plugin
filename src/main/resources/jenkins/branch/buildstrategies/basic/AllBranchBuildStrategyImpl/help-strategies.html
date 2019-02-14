@@ -22,10 +22,5 @@
  ~ THE SOFTWARE.
  -->
 <div>
-  The number of days since the tag was created before it is eligible for automatic building.
-  <br/>
-  <strong>NOTE:</strong> if you select this option, the build may only be triggered during a full scan / index of
-  the multibranch project. For some distributed source control systems, it may be possible to create the tag with
-  a timestamp and then push the tag to the scanned repository at a later date, in which case event notification could
-  trigger a build of such a tag providing it is eligible.
+    The strategies to check when matching. All must pass for this strategy to match.
 </div>

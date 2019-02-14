@@ -23,43 +23,41 @@
  */
 package jenkins.branch.buildstrategies.basic;
 
-import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
+import hudson.Util;
 import jenkins.branch.BranchBuildStrategy;
 import jenkins.branch.BranchBuildStrategyDescriptor;
 import jenkins.scm.api.SCMHead;
 import jenkins.scm.api.SCMRevision;
 import jenkins.scm.api.SCMSource;
-import jenkins.scm.api.mixin.ChangeRequestCheckoutStrategy;
-import jenkins.scm.api.mixin.ChangeRequestSCMHead;
-import jenkins.scm.api.mixin.ChangeRequestSCMHead2;
-import jenkins.scm.api.mixin.ChangeRequestSCMRevision;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-/**
- * A {@link BranchBuildStrategy} that builds change requests.
- *
- * @since 1.0.0
- */
-public class ChangeRequestBuildStrategyImpl extends BranchBuildStrategy {
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-    private final boolean ignoreTargetOnlyChanges;
+/**
+ * A {@link BranchBuildStrategy} that builds branches based on the results of any sub strategy matching.
+ *
+ * @since 1.0.1
+ */
+public class AnyBranchBuildStrategyImpl extends BranchBuildStrategy {
+
+    /**
+     * The list of sub strategies.
+     */
+    @NonNull
+    private final List<BranchBuildStrategy> strategies;
 
     /**
      * Our constructor.
-     *
-     * @param ignoreTargetOnlyChanges {@code true} to ignore merge revision changes where the only difference is the
-     *                                            target branch revision.
+     * @param strategies the strategies to apply.
      */
     @DataBoundConstructor
-    public ChangeRequestBuildStrategyImpl(boolean ignoreTargetOnlyChanges) {
-        this.ignoreTargetOnlyChanges = ignoreTargetOnlyChanges;
-    }
-
-    public boolean isIgnoreTargetOnlyChanges() {
-        return ignoreTargetOnlyChanges;
+    public AnyBranchBuildStrategyImpl(List<BranchBuildStrategy> strategies) {
+        this.strategies = new ArrayList<>(Util.fixNull(strategies));
     }
 
     /**
@@ -67,19 +65,29 @@ public class ChangeRequestBuildStrategyImpl extends BranchBuildStrategy {
      */
     @Override
     public boolean isAutomaticBuild(@NonNull SCMSource source, @NonNull SCMHead head, @NonNull SCMRevision currRevision,
-                                    @CheckForNull SCMRevision prevRevision) {
-        if (!(head instanceof ChangeRequestSCMHead)) {
+                                    SCMRevision prevRevision) {
+
+        if(strategies.isEmpty()){
             return false;
         }
-        if (ignoreTargetOnlyChanges
-                && currRevision instanceof ChangeRequestSCMRevision
-                && prevRevision instanceof ChangeRequestSCMRevision) {
-            ChangeRequestSCMRevision<?> curr = (ChangeRequestSCMRevision<?>) currRevision;
-            if (curr.isMerge() && curr.equivalent((ChangeRequestSCMRevision<?>) prevRevision)) {
-                return false;
-            }
+
+        for (BranchBuildStrategy strategy: strategies) {
+            if(strategy.isAutomaticBuild(
+                source,
+                head,
+                currRevision,
+                prevRevision
+            )){
+                return true;
+            };
+
         }
-        return true;
+        return false;
+    }
+
+    @NonNull
+    public List<BranchBuildStrategy> getStrategies() {
+        return Collections.unmodifiableList(strategies);
     }
 
     /**
@@ -94,9 +102,9 @@ public class ChangeRequestBuildStrategyImpl extends BranchBuildStrategy {
             return false;
         }
 
-        ChangeRequestBuildStrategyImpl that = (ChangeRequestBuildStrategyImpl) o;
+        AnyBranchBuildStrategyImpl that = (AnyBranchBuildStrategyImpl) o;
 
-        return ignoreTargetOnlyChanges == that.ignoreTargetOnlyChanges;
+        return strategies.equals(that.strategies);
     }
 
     /**
@@ -104,23 +112,21 @@ public class ChangeRequestBuildStrategyImpl extends BranchBuildStrategy {
      */
     @Override
     public int hashCode() {
-        return (ignoreTargetOnlyChanges ? 1 : 0);
+        return strategies.hashCode();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
-        return "ChangeRequestBuildStrategyImpl{" +
-                "ignoreTargetOnlyChanges=" + ignoreTargetOnlyChanges +
+        return "AnyBranchBuildStrategyImpl{" +
+                "strategies=" + strategies +
                 '}';
     }
+
 
     /**
      * Our descriptor.
      */
-    @Symbol("buildChangeRequests")
+    @Symbol("buildAnyBranches")
     @Extension
     public static class DescriptorImpl extends BranchBuildStrategyDescriptor {
         /**
@@ -129,7 +135,10 @@ public class ChangeRequestBuildStrategyImpl extends BranchBuildStrategy {
         @NonNull
         @Override
         public String getDisplayName() {
-            return Messages.ChangeRequestBuildStrategyImpl_displayName();
+            return Messages.AnyBranchBuildStrategyImpl_displayName();
         }
     }
+
+
+
 }

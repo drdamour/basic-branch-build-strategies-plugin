@@ -30,14 +30,14 @@
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
     <version>3.2</version>
-    <relativePath />
+
   </parent>
 
-  <artifactId>basic-branch-build-strategies</artifactId>
+  <artifactId>basic-branch-build-strategies-bbcom</artifactId>
   <version>1.1.2-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
-  <name>Basic Branch Build Strategies Plugin</name>
+  <name>Basic Branch Build Strategies Plugin BBCOM</name>
   <description>
     This plugin provides some basic branch build strategies for use with Branch API based projects.
   </description>
@@ -72,15 +72,35 @@
 
   <repositories>
     <repository>
-      <id>repo.jenkins-ci.org</id>
-      <url>https://repo.jenkins-ci.org/public/</url>
+      <id>libs-release</id>
+      <name>libs-release</name>
+      <url>http://artifactory/libs-release</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+
+    <repository>
+      <id>libs-snapshot</id>
+      <name>libs-snapshot</name>
+      <url>http://artifactory/libs-snapshot</url>
     </repository>
   </repositories>
 
   <pluginRepositories>
     <pluginRepository>
-      <id>repo.jenkins-ci.org</id>
-      <url>https://repo.jenkins-ci.org/public/</url>
+      <id>plugins-release</id>
+      <name>plugins-release</name>
+      <url>http://artifactory/plugins-release</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </pluginRepository>
+
+    <pluginRepository>
+      <id>plugins-snapshot</id>
+      <name>plugins-snapshot</name>
+      <url>http://artifactory/plugins-snapshot</url>
     </pluginRepository>
   </pluginRepositories>
 
@@ -106,5 +126,7 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+
 
 </project>
